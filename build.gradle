@@ -1,0 +1,109 @@
+apply plugin: 'java'
+apply plugin: 'groovy'
+apply plugin: 'code-quality'
+apply plugin: 'idea'
+apply plugin: 'maven'
+
+description = "Cucumber like acceptance tests using Spock and Groovy"
+version = '0.1.0'
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '1.0-milestone-3'
+}
+
+compileJava.options.compilerArgs = ['-Xlint:unchecked'] 
+sourceCompatibility = '1.6'
+
+group = 'pease' // maven group
+archivesBaseName = 'pease'
+
+repositories {
+  mavenCentral name: 'cukes', urls: "http://cukes.info/maven/"
+  mavenCentral()
+}
+
+dependencies {
+  groovy 'org.codehaus.groovy:groovy-all:1.8.0'
+
+  compile 'org.mockito:mockito-core:1.8.5'
+
+  compile 'gherkin:gherkin:2.4.16'
+  compile project(':spock:spock-core')
+}
+
+task sourcesJar(type: Jar, dependsOn: [compileJava, compileGroovy]) {
+  from sourceSets.main.allSource
+  classifier = 'sources'
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// IntelliJ IDEA
+// -------------
+ideaModule {
+  beforeConfigured { it.dependencies.clear() }
+  whenConfigured { it.dependencies*.exported = true }
+}
+
+ideaProject {
+  beforeConfigured { it.modulePaths.clear() }
+  withXml { provider ->
+    provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs        = 'Git'
+    provider.node.component.find { it.@name == 'ProjectRootManager'   }.@languageLevel      = 'JDK_1_6'
+    provider.node.component.find { it.@name == 'ProjectRootManager'   }.@'project-jdk-name' = '1.6'
+  }
+}
+//----------------------------------------------------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------------------------------------------------
+// CodeNarc
+// -------------
+codeNarcConfigFileName = 'config/codenarc/rules.groovy'
+codeNarcReportsFormat  = 'xml'
+//----------------------------------------------------------------------------------------------------------------------
+
+build.dependsOn << 'check'
+
+tasks.withType(CodeNarc).all { codeNarcTask ->
+  codeNarcTask.ignoreFailures = true
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// Maven
+// -------------
+basePom = {
+  project {
+    name project.name
+    url 'https://pease.github.com/'
+    description project.description
+
+    licenses {
+      license {
+        name 'The Apache Software License, Version 2.0'
+        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+        distribution 'repo'
+      }      
+    }
+
+    developers {
+      developer {
+        id    'jahrens'
+        name  'Jan Ahrens'
+        organizationUrl 'https://github.com/pease/'
+      }
+    }
+  }
+}
+
+uploadArchives {
+  repositories.mavenDeployer {
+    pom basePom
+    repository url: 'http://localhost:8081/nexus/content/repositories/releases/'
+  }
+}
+
+uploadArchives.dependsOn sourcesJar
+
+artifacts {
+  archives sourcesJar
+}
+//----------------------------------------------------------------------------------------------------------------------

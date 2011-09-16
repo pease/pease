@@ -1,0 +1,7 @@
+// prevent the project from getting an ugly name, when the checkout directory is different
+rootProject.name = "pease"
+
+// including spock is necessary to be able to access the spock-core sub-subproject dependency
+include 'spock', 'spock:spock-core', 'spock:spock-specs'
+
+include 'demo'

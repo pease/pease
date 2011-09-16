@@ -1,0 +1,3 @@
+[submodule "spock"]
+	path = spock
+	url = git://github.com/pease/spock.git
