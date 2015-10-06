@@ -1,3 +1,9 @@
+**WARNING**:
+This project is highly outdated. Most probably it won't work any longer.
+The sources are still left here for you learn and explore.
+
+---
+
 Pease is an extension to the [Spock](http://spockframework.org/) framework
 that adds support for acceptance test driven development (ATDD).
 
